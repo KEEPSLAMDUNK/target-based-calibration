@@ -32,7 +32,6 @@
 *.app
 
 # something else
-data/
 bin/
 build/
 .idea/
