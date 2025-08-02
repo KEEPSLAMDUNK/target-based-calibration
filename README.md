@@ -1,97 +1,167 @@
-# target-based-calibration
+# Target-Based LiDAR-Camera Calibration
 
-## 1. 软件介绍
+A LiDAR-Camera extrinsic calibration tool using rectangular calibration boards for accurate spatial relationship determination between LiDAR and camera sensors.
 
-基于矩形标定板能够准确地确定激光雷达和相机之间的空间位置关系，从而实现精准的外参标定。在当前的版本中，提供了人工辅助的简单操作过程。
+## Overview
 
-### 1.1 依赖安装
+This software provides an accurate method to determine the spatial relationship between LiDAR and camera sensors using rectangular calibration boards. The current version offers a user-friendly, semi-automated calibration process with manual assistance features.
+
+## Prerequisites
+
+### System Requirements
+- Linux (Ubuntu 18.04+ recommended)
+- CMake 3.10+
+
+### Dependencies
+
+Install the required dependencies:
 
 ```bash
-# Add PPA
-sudo add-apt-repository ppa:borglab/gtsam-release-4.0
-sudo apt update  # not necessary since Bionic
-# Install:
+# Install basic dependencies
+sudo apt install cmake build-essential python3-opencv libopencv-dev libboost-all-dev libpcl-dev software-properties-common
+
+# Add GTSAM PPA and install
+sudo add-apt-repository ppa:borglab/gtsam-release-4.1
+sudo apt update
 sudo apt install libgtsam-dev libgtsam-unstable-dev
 ```
 
-### 1.2 编译
+## Installation
 
+### Build from Source
+
+1. Clone the repository:
+```bash
+git clone https://github.com/KEEPSLAMDUNK/target-based-calibration.git
+cd target-based-calibration
+```
+
+2. Create build directory and compile:
 ```bash
 mkdir build && cd build
 cmake ..
 make -j8
 ```
 
-### 1.3 运行
+## Usage
+
+### Quick Demo
+
+Run the calibration tool with the provided demo data:
 
 ```bash
-# demo
-bin/lidar_camera_calibrator data/data-velo-sim
+./bin/lidar_camera_calibrator ../data/data-velo-sim
 ```
 
+## Calibration Workflow
 
+![Calibration Process](doc/a9907fce31514ad7b62549bb8872ccf43067.png)
 
+The calibration process follows these main steps:
+1. **Data Collection** - Capture synchronized LiDAR and camera data with calibration board
+2. **Data Selection** - Choose high-quality image frames for calibration
+3. **Configuration** - Set camera intrinsics and calibration board parameters
+4. **Corner Detection** - Extract calibration board corners from images and point clouds
+5. **Calibration** - Compute extrinsic parameters
+6. **Validation** - Verify results through visualization
 
-### 2. 标定流程
-![image](doc/a9907fce31514ad7b62549bb8872ccf43067.png)
+## Step-by-Step Calibration Guide
 
-## 3.标定实操
+### 1. Data Collection (rosbag)
 
-### 3.1 标定数据采集 (rosbag)
+- Hold the calibration board at various angles during data collection
+- Change the board position 3-5 times to ensure comprehensive coverage
+- Capture data across the overlapping field of view between LiDAR and camera
+- Ensure the calibration board is clearly visible in both sensors
 
-用户需要倾斜地拿着标定板进行数据采集。在进行数据采集时，用户可能需要变换若干次方位(3-5次)，确保在整个共同视野范围内都有充分的数据被捕获，为外参标定提供更为准确的结果。
+### 2. Data Selection
 
-### 3.2 标定数据筛选
+Select 3-5 high-quality image frames with clear calibration board visibility:
 
-挑选出图像清晰的数据（3-5组）用于标定，如下图所示。
+![Sample Image 1](doc/55d61adf-9a12-45ed-b9cb-29651ca57e59.jpeg)
+![Sample Image 2](doc/66d8e21f-8cb6-4750-a453-d03005e80bce.jpeg)
+![Sample Image 3](doc/e9f9bfc1-cc06-44e0-a7b4-246038d235e4.jpeg)
 
-![image](doc/55d61adf-9a12-45ed-b9cb-29651ca57e59.jpeg)
-![image](doc/66d8e21f-8cb6-4750-a453-d03005e80bce.jpeg)
-![image](doc/e9f9bfc1-cc06-44e0-a7b4-246038d235e4.jpeg)
+### 3. Configuration Setup
 
-### 3.3 配置文件填写
+Modify the configuration file (`config.json`) with:
+- Camera intrinsic parameters
+- Distortion coefficients
+- Calibration board size
 
-修改配置文件（config.json）中的畸变系数、相机内参和标定板大小。
+![Configuration Example 1](doc/d5ecfd46-49ee-4aaa-bba8-0131a39cf9b6.png)
+![Configuration Example 2](doc/d112c018-2122-4a0b-a4f3-fefc2181ebd6.png)
 
-![image](doc/d5ecfd46-49ee-4aaa-bba8-0131a39cf9b6.png)
+### 4. Extrinsic Calibration Process
 
-![image](doc/d112c018-2122-4a0b-a4f3-fefc2181ebd6.png)
+#### 4.1 Launch Calibration Tool
 
-### 3.4 外参标定
+1. Open the calibration software
+2. Specify the root directory containing calibration data
 
-1.  打开标定软件，并指定标定数据根目录。
+![Launch Interface](doc/e2cd60cd-0ee1-4ce0-bbe2-c13a7d2e0a1b.png)
 
-![image](doc/e2cd60cd-0ee1-4ce0-bbe2-c13a7d2e0a1b.png)
+#### 4.2 Corner Extraction
 
-2.  图像和点云中的标定板的角点提取。
+**Image Corner Detection:**
+- Calibration board corners are automatically detected in images
+- If no automatic detection occurs, manually select corners:
+  - Click "Start" to begin manual selection
+  - Click "Finish" to complete selection
 
-图像中的标定板角点将自动提取，如下图所示。若无marker，需要手动选择（start开始选择，finish结束）。
+![Image Corner Detection](doc/c0f824a4-9029-4721-9d48-c25f5ae71a05.png)
 
-![image](doc/c0f824a4-9029-4721-9d48-c25f5ae71a05.png)
+**Point Cloud Corner Extraction:**
+- Manually filter the calibration board from the point cloud
+- Click "Extract" to complete corner extraction
 
-点云中需人工操作将标定板过滤出来，随后点击extract，即可完成角点提取。如下图所示。
+![Point Cloud Filtering](doc/037789a2-4529-4bd8-9cdd-ca95e72a55c8.png)
+![Point Cloud Extraction](doc/e3d8fd98-4b6e-4128-90d5-bef081cafdbc.png)
 
-![image](doc/037789a2-4529-4bd8-9cdd-ca95e72a55c8.png)
-![image](doc/e3d8fd98-4b6e-4128-90d5-bef081cafdbc.png)
+### 5. Results and Validation
 
-### 3.5 标定结果输出及可视化验证
+After completing corner extraction for all datasets:
 
-待完成所有数据的角点提取后，点击标定（calibrate）按钮即可完成标定，此时终端将输出标定结果，可视化界面将显示点云投影至图像以及点云着色的效果。标定结果也将写入至配置文件当中。
+1. Click the "Calibrate" button to perform calibration
+2. View calibration results in the terminal output
+3. Visualize the results through:
+   - Point cloud projection onto images
+   - Colored point cloud visualization
+4. Calibration results are automatically saved to the configuration file
 
-![image](doc/de71298d-7272-467b-998f-5d0cc2305621.png)
-![image](doc/643d8a13-24b2-4219-8885-27aedaccd42f.png)
+![Calibration Results 1](doc/de71298d-7272-467b-998f-5d0cc2305621.png)
+![Calibration Results 2](doc/643d8a13-24b2-4219-8885-27aedaccd42f.png)
 
+## Results
 
+The calibration process provides:
+- **Extrinsic Parameters**: Translation and rotation matrices between LiDAR and camera
+- **Visualization**: Point cloud overlaid on camera images
+- **Validation Metrics**: Reprojection errors and calibration accuracy statistics
 
-![image](doc/7a104b19-89ed-46b0-8bd9-2bc0b4ff98b7.png)
-![image](doc/f2734f5b-e02d-4ee8-8327-8538b60c56d8.png)
+![Result Visualization 1](doc/7a104b19-89ed-46b0-8bd9-2bc0b4ff98b7.png)
+![Result Visualization 2](doc/f2734f5b-e02d-4ee8-8327-8538b60c56d8.png)
 
+## Troubleshooting
 
+### Common Issues
 
-## 4. 致谢
+- **Poor corner detection**: Ensure adequate lighting and clear calibration board visibility
+- **Insufficient data**: Collect more poses with varied orientations
 
-感谢以下开源仓库~
+## Contributing
 
-https://github.com/HITSZ-NRSL/lidar_camera_calibrator
+Contributions are welcome! Please feel free to submit issues and enhancement requests.
 
-https://github.com/beltransen/velo2cam_calibration
+## TODO
+
+- [ ] Code refactoring
+- [ ] Better documentation/video tutorials  
+- [ ] Further algorithm improvements
+
+## Acknowledgments
+
+This project is built upon open-source work:
+
+- [HITSZ-NRSL/lidar_camera_calibrator](https://github.com/HITSZ-NRSL/lidar_camera_calibrator)
+- [beltransen/velo2cam_calibration](https://github.com/beltransen/velo2cam_calibration)
