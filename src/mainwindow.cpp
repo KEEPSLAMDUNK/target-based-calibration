@@ -183,9 +183,8 @@ void MainWindow::on_next_pose_clicked() {
         auto &last = sensor_data_.back();
         last.img = data_reader_->getImage();
         last.pc = data_reader_->getPointcloud();
-        // 使用PCL推荐的智能指针创建方式
-        last.pc_marked = boost::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
-        last.pc_plane = boost::make_shared<pcl::PointCloud<pcl::PointXYZI>>();
+        last.pc_marked.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
+        last.pc_plane.reset(new pcl::PointCloud<pcl::PointXYZI>);
         if (!last.img) {
           sensor_data_.pop_back();
           QMessageBox::warning(this, tr("Error"), tr("Fail to read image"));
@@ -632,17 +631,8 @@ bool MainWindow::processData(bool is_check) {
 
   last.img_marked = std::make_shared<cv::Mat>();
   last.img->copyTo(*last.img_marked);
-  // 检查是否已经初始化，避免重复分配
-  if (!last.pc_marked) {
-    last.pc_marked = boost::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
-  } else {
-    last.pc_marked->clear();  // 如果已存在，只清空内容
-  }
-  if (!last.pc_plane) {
-    last.pc_plane = boost::make_shared<pcl::PointCloud<pcl::PointXYZI>>();
-  } else {
-    last.pc_plane->clear();  // 如果已存在，只清空内容
-  }
+  last.pc_marked.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
+  last.pc_plane.reset(new pcl::PointCloud<pcl::PointXYZI>);
   auto &ply = last.polygon;
 
   // img
@@ -756,9 +746,8 @@ void MainWindow::showCalibrateResult() {
       sd.pc_proj_cam == nullptr) {
     sd.img_proj.reset(new cv::Mat);
     sd.img->copyTo(*sd.img_proj);
-            // 使用PCL推荐的智能指针创建方式
-        sd.pc_proj = boost::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
-        sd.pc_proj_cam = boost::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
+    sd.pc_proj.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
+    sd.pc_proj_cam.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::copyPointCloud(*sd.pc, *sd.pc_proj);
     for (auto &p : sd.pc_proj->points) {
       p.rgba = 0xffffffff;
