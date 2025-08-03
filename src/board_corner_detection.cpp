@@ -9,7 +9,17 @@ BoardCornerDetection::BoardCornerDetection() {
   parameters_ = cv::aruco::DetectorParameters::create();
 }
 
+BoardCornerDetection::BoardCornerDetection(const std::string& config_file_path) {
+  dictionary_ = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_50);
+  parameters_ = cv::aruco::DetectorParameters::create();
+  LoadConfig(config_file_path);
+}
+
 BoardCornerDetection::~BoardCornerDetection() {}
+
+void BoardCornerDetection::LoadConfig(const std::string& config_file_path) {
+  board_params_.LoadFromYAML(config_file_path);
+}
 
 void BoardCornerDetection::SetDictionary(
     const cv::Ptr<cv::aruco::Dictionary> &dictionary) {

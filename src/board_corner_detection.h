@@ -12,6 +12,11 @@
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/opencv.hpp>
 
+#include <yaml-cpp/yaml.h>
+#include <string>
+#include <iostream>
+#include <stdexcept>
+
 class BoardCornerDetection {
 public:
   struct BoardParams {
@@ -21,11 +26,52 @@ public:
     float marker_size = 0.2;
     float marker_width_interval = 1.1;
     float marker_height_interval = 0.7;
+
+    // 从YAML文件加载参数
+    void LoadFromYAML(const std::string& yaml_file_path) {
+      try {
+        YAML::Node config = YAML::LoadFile(yaml_file_path);
+        
+        if (config["board_params"]) {
+          auto board_config = config["board_params"];
+          
+          if (board_config["board_width"]) {
+            board_width = board_config["board_width"].as<float>();
+          }
+          if (board_config["board_height"]) {
+            board_height = board_config["board_height"].as<float>();
+          }
+          if (board_config["marker_size"]) {
+            marker_size = board_config["marker_size"].as<float>();
+          }
+          if (board_config["marker_width_interval"]) {
+            marker_width_interval = board_config["marker_width_interval"].as<float>();
+          }
+          if (board_config["marker_height_interval"]) {
+            marker_height_interval = board_config["marker_height_interval"].as<float>();
+          }
+          
+          std::cout << "Successfully loaded board parameters from: " << yaml_file_path << std::endl;
+        } else {
+          std::cerr << "Warning: 'board_params' section not found in YAML file. Using default values." << std::endl;
+        }
+      } catch (const YAML::Exception& e) {
+        std::cerr << "Error loading YAML file '" << yaml_file_path << "': " << e.what() << std::endl;
+        std::cerr << "Using default parameters." << std::endl;
+      } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        std::cerr << "Using default parameters." << std::endl;
+      }
+    }
   };
 
 public:
   BoardCornerDetection();
+  BoardCornerDetection(const std::string& config_file_path);
   virtual ~BoardCornerDetection();
+
+  // 加载配置文件
+  void LoadConfig(const std::string& config_file_path);
 
 public:
   void SetDictionary(const cv::Ptr<cv::aruco::Dictionary> &dictionary);

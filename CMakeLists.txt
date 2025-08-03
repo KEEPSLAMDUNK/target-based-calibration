@@ -18,6 +18,8 @@ find_package(Boost REQUIRED
 )
 find_package(PCL QUIET REQUIRED)
 find_package(GTSAM REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(YAMLCPP REQUIRED yaml-cpp)
 
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets)
 
@@ -33,6 +35,7 @@ include_directories(
         ${Eigen_INCLUDE_DIRS}
         thirdParty
         ${VTK_INCLUDE_DIRS}
+        ${YAMLCPP_INCLUDE_DIRS}
 )
 
 link_directories(
@@ -54,6 +57,7 @@ set(THIRD_PARTY_LIBS
         ${PCL_LIBRARIES}
         ${Boost_LIBRARIES}
         ${VTK_LIBRARIES}
+        ${YAMLCPP_LIBRARIES}
         gtsam
 )
 

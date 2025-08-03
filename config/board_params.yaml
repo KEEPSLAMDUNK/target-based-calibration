@@ -1,0 +1,13 @@
+# 标定板参数配置文件
+
+board_params:
+  # 标定板尺寸 (米)
+  # Board dimensions (meters)
+  board_width: 0.6          # 标定板宽度
+  board_height: 0.4         # 标定板高度
+  
+  # ArUco标记参数 (米)
+  # ArUco marker parameters (meters)
+  marker_size: 0.168                    # 单个标记的尺寸
+  marker_width_interval: 0.392          # 标记之间的水平间距
+  marker_height_interval: 0.192        # 标记之间的垂直间距

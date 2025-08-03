@@ -96,14 +96,17 @@ Eigen::Matrix4d extractPCFeature(pcl::PointCloud<pcl::PointXYZ>::Ptr _cloud,
                                  const std::vector<double> &tag_size,
                                  bool debug_flag = true,
                                  bool verbose_flag = false) {
-  int size = _cloud->points.size();
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_copy(new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::copyPointCloud(*_cloud, *cloud_copy);
+  
+  int size = cloud_copy->points.size();
 
   pcl::ConcaveHull<pcl::PointXYZ> chull;
-  chull.setInputCloud(_cloud);
+  chull.setInputCloud(cloud_copy);
   chull.setAlpha(0.5);
-  chull.reconstruct(*_cloud);
+  chull.reconstruct(*cloud_copy);
 
-  pcl::io::savePCDFile("chull.pcd", *_cloud);
+  pcl::io::savePCDFile("chull.pcd", *cloud_copy);
 
   gtsam::NonlinearFactorGraph graph;
 
@@ -115,9 +118,9 @@ Eigen::Matrix4d extractPCFeature(pcl::PointCloud<pcl::PointXYZ>::Ptr _cloud,
 
   for (size_t i = 0; i < size; ++i) {
     gtsam::PcPolygonFitFactor factor(gtsam::Key(0),
-                                     gtsam::Vector3(_cloud->points[i].x,
-                                                    _cloud->points[i].y,
-                                                    _cloud->points[i].z),
+                                     gtsam::Vector3(cloud_copy->points[i].x,
+                                                    cloud_copy->points[i].y,
+                                                    cloud_copy->points[i].z),
                                      tag_size, noise_model);
     graph.add(factor);
   }

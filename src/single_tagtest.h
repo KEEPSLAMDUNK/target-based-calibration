@@ -102,7 +102,7 @@ bool compareCorners(const cv::Point2d corners1[],
 void getCorners(const cv::Mat &src, const Eigen::Matrix3d &camera_matrix,
                 const Eigen::Matrix<double, 5, 1> &dist_coeffs,
                 std::vector<cv::Point2d> &corners_max) {
-  BoardCornerDetection detector;
+  BoardCornerDetection detector("config/board_params.yaml");
   detector.SetCameraModel(camera_matrix, dist_coeffs);
   detector.SetDictionary(
       cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50));
