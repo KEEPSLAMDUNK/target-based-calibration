@@ -120,9 +120,8 @@ void PointcloudPolygon::GetPlane(
   // Create the filtering object
   pcl::ExtractIndices<pcl::PointXYZI> extract;
 
-  pcl::IndicesPtr indices_ptr(new std::vector<int>);
-  indices_ptr->resize(indices.size());
-  std::copy(indices.begin(), indices.end(), indices_ptr->begin());
+  // 使用boost::make_shared避免内存管理问题 (PCL使用boost智能指针)
+  pcl::IndicesPtr indices_ptr = boost::make_shared<std::vector<int>>(indices.begin(), indices.end());
   extract.setInputCloud(pc);
   extract.setIndices(indices_ptr);
   extract.setNegative(false);
@@ -181,9 +180,8 @@ bool PointcloudPolygon::ExtractPlane(
   PCI::Ptr pc_ptr(new PCI);
   pcl::copyPointCloud(pc, *pc_ptr);
 
-  pcl::IndicesPtr indices_ptr(new std::vector<int>);
-  indices_ptr->resize(indices.size());
-  std::copy(indices.begin(), indices.end(), indices_ptr->begin());
+  // 同样修复ExtractPlane函数中的内存管理问题
+  pcl::IndicesPtr indices_ptr = boost::make_shared<std::vector<int>>(indices.begin(), indices.end());
 
   pcl::ModelCoefficients model_coef;
   pcl::PointIndices ids;
@@ -202,6 +200,7 @@ bool PointcloudPolygon::ExtractPlane(
     std::swap(ids.indices, indices);
     return true;
   }
+  return false;  // 修复：当没有找到平面时返回false
 }
 
 void PointcloudPolygon::MarkPointcloud(pcl::PointCloud<pcl::PointXYZRGB> &pcc,
